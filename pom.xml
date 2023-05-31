@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>afd8f48d-6fc5-4cb5-9b22-39b273c46af0</groupId>
-		<artifactId>apipeople-parent-pom</artifactId>
-		<version>1.0.0-SNAPSHOT</version>
-	</parent>
 
 	<groupId>afd8f48d-6fc5-4cb5-9b22-39b273c46af0</groupId>
 	<artifactId>apipeople-test-api</artifactId>
@@ -18,22 +15,23 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<app.runtime>4.4.0-20230320</app.runtime>
 		<munit.version>2.3.14</munit.version>
-		<!-- 
-		temp props, configure these in CI/CD pipeline
 
-		<env>dev</env>
-		<anypoint.platform.client_id>1</anypoint.platform.client_id>
-		<anypoint.platform.client_secret>2</anypoint.platform.client_secret>
-		<secret.key>3</secret.key>
-		<businessGroupId>${project.groupId}</businessGroupId>
-		<environment>Sandbox</environment>
-		<targetSpace>Cloudhub-US-East-2</targetSpace>
-		<muleVersion>4.4.0</muleVersion>
-		<server>Exchange2</server>		
-		<applicationName>apipeople-test-api</applicationName>
-		<replicas>1</replicas>
-		<vCores>0.1</vCores> 
-		-->
+		<!-- Maven Plugins -->
+		<mule.maven.plugin.version>3.8.5</mule.maven.plugin.version>
+		<skipDeploymentVerification>false</skipDeploymentVerification>
+		<maven.clean.plugin.version>3.2.0</maven.clean.plugin.version>
+
+		<!-- Mule Connectors -->
+		<mule-http-connector-version>1.7.3</mule-http-connector-version>
+		<mule-socket-connector-version>1.2.3</mule-socket-connector-version>
+		<mule-db-connector-version>1.14.0</mule-db-connector-version>
+		<mule-file-connector-version>1.5.0</mule-file-connector-version>
+
+		<!-- Mule Modules -->
+		<mule-apikit-module-version>1.8.4</mule-apikit-module-version>
+		<apipeople-json-logger-version>2.1.0</apipeople-json-logger-version>
+		<apipeople-common-error-handler-version>6.1.0</apipeople-common-error-handler-version>
+		<mule-secure-configuration-property-module-version>1.2.5</mule-secure-configuration-property-module-version>
 	</properties>
 
 	<build>
@@ -42,7 +40,7 @@
 				<groupId>org.mule.tools.maven</groupId>
 				<artifactId>mule-maven-plugin</artifactId>
 				<extensions>true</extensions>
-				<version>3.8.2</version>
+				<version>${mule.maven.plugin.version}</version>
 				<configuration>
 					<sharedLibraries>
 						<sharedLibrary>
@@ -50,6 +48,7 @@
 							<artifactId>mysql-connector-java</artifactId>
 						</sharedLibrary>
 					</sharedLibraries>
+					<classifier>mule-application</classifier>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -93,30 +92,54 @@
 			</plugin>
 		</plugins>
 	</build>
+
 	<dependencies>
+		<dependency>
+			<groupId>org.mule.modules</groupId>
+			<artifactId>mule-apikit-module</artifactId>
+			<version>${mule-apikit-module-version}</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
 		<dependency>
 			<groupId>org.mule.connectors</groupId>
 			<artifactId>mule-http-connector</artifactId>
+			<version>${mule-http-connector-version}</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.mule.connectors</groupId>
 			<artifactId>mule-sockets-connector</artifactId>
-			<classifier>mule-plugin</classifier>
-		</dependency>
-		<dependency>
-			<groupId>org.mule.modules</groupId>
-			<artifactId>mule-apikit-module</artifactId>
+			<version>${mule-socket-connector-version}</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.mule.connectors</groupId>
 			<artifactId>mule-db-connector</artifactId>
+			<version>${mule-db-connector-version}</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.mule.connectors</groupId>
 			<artifactId>mule-file-connector</artifactId>
+			<version>${mule-file-connector-version}</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>apipeople-json-logger</artifactId>
+			<version>${apipeople-json-logger-version}</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>apipeople-common-error-handler</artifactId>
+			<version>${apipeople-common-error-handler-version}</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>com.mulesoft.modules</groupId>
+			<artifactId>mule-secure-configuration-property-module</artifactId>
+			<version>${mule-secure-configuration-property-module-version}</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
@@ -146,4 +169,34 @@
 		</dependency>
 	</dependencies>
 
+	<repositories>
+		<repository>
+			<id>mulesoft-releases</id>
+			<name>MuleSoft Releases Repository</name>
+			<url>https://repository.mulesoft.org/releases/</url>
+			<layout>default</layout>
+		</repository>
+		<repository>
+			<id>anypoint-exchange-v3</id>
+			<name>Anypoint Exchange V3</name>
+			<url>https://maven.anypoint.mulesoft.com/api/v3/maven</url>
+			<layout>default</layout>
+		</repository>
+	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>mule-public</id>
+			<url>https://repository.mulesoft.org/nexus/content/repositories/releases</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>mulesoft-releases</id>
+			<name>mulesoft release repository</name>
+			<layout>default</layout>
+			<url>https://repository.mulesoft.org/releases/</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</pluginRepository>
+	</pluginRepositories>
 </project>
