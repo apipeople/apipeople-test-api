@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:module-error-handler-plugin="http://www.mulesoft.org/schema/mule/module-error-handler-plugin"
+	xmlns:json-logger="http://www.mulesoft.org/schema/mule/json-logger" xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/json-logger http://www.mulesoft.org/schema/mule/json-logger/current/mule-json-logger.xsd
+http://www.mulesoft.org/schema/mule/module-error-handler-plugin http://www.mulesoft.org/schema/mule/module-error-handler-plugin/current/mule-module-error-handler-plugin.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+
+	<api-gateway:autodiscovery apiId="${api.id}" ignoreBasePath="true" doc:name="API Autodiscovery"
+		doc:id="607ca4ed-3c82-46d5-ac39-1301c4279634" flowRef="api-main" />
+	<apikit:config name="api-config" api="api.yaml" httpStatusVarName="httpStatus" outboundHeadersMapName="outboundHeaders"
+		doc:id="c240a4ab-305a-462b-b670-457ba7c28c10" />
+
+	<configuration-properties doc:name="Configuration properties" doc:id="c0cb3f9d-5db7-4fd2-98b4-da61db900527"
+		file="common-properties.yaml" />
+	<configuration-properties doc:name="Configuration properties" doc:id="18a9e8f3-339b-4513-adef-5164c9fa9b22"
+		file="${env}-properties.yaml" />
+
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config"
+		doc:id="add32ee7-3e65-419c-89d7-4b28b7ee5aac" key="${secret.key}" file="${env}-vault-properties.yaml">
+		<secure-properties:encrypt algorithm="AES" mode="CBC" />
+	</secure-properties:config>
+
+	<http:listener-config name="HTTP_Listener_Config" doc:name="HTTP Listener config"
+		doc:id="a047140e-6aac-41f3-aa66-1535dd6d32f9">
+		<http:listener-connection host="0.0.0.0" port="${api.http.private.port}" />
+	</http:listener-config>
+
+	<http:listener-config name="HTTPS_Listener_Config" doc:name="HTTP Listener config"
+		doc:id="d0e7a510-0ab9-4894-b500-f586dea698b9">
+		<http:listener-connection protocol="HTTPS" host="0.0.0.0" port="${api.https.port}" tlsContext="TLS_Context" />
+	</http:listener-config>
+
+	<tls:context name="TLS_Context" doc:name="TLS Context" doc:id="15dab615-0205-474a-b3e0-9460daaedce0">
+		<tls:key-store type="jks" path="ssl/${env}/keystore.jks" keyPassword="${secure::stores.keystore.keypassword}"
+			password="${secure::stores.keystore.password}" />
+	</tls:context>
+
+	<json-logger:config name="JSON_Logger_Config" doc:name="JSON Logger Config"
+		doc:id="3f03bc2f-563d-4ec1-9e4b-05cff6bd715d" environment="${env}" contentFieldsDataMasking="${json.logger.masked.fields}"
+		disabledFields="${json.logger.disabled.fields}" />
+		
+	<http:request-config name="Petstore_HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="a20e1f9c-25d9-4bdf-b27c-ff6d2fe9edf5" basePath="/v2" >
+		<http:request-connection protocol="HTTPS" host="petstore.swagger.io" port="443" >
+			<tls:context >
+				<tls:trust-store insecure="true" />
+			</tls:context>
+		</http:request-connection>
+	</http:request-config>
+	
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="898193b0-91a2-4062-a463-6b2dc970a8f6" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="ecommerce" />
+	</db:config>
+	
+	<file:config name="File_Config" doc:name="File Config" doc:id="c58a7940-c60a-4650-92e4-1dd8224a1ef2" >
+		<file:connection workingDir="C:\Sri\test" />
+	</file:config>
+
+</mule>

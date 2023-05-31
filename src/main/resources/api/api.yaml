@@ -1,0 +1,334 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: OAS Spec Test
+  license:
+    name: MIT
+servers:
+  - url: http://oas-spec-test.io/v1
+paths:
+  /ping:
+    get:
+      summary: Read API Status checking Object
+      operationId: getStatus
+      tags:
+        - status
+      responses:
+        '200':
+          description: A paged array of pets
+          headers:
+            x-transaction-id:
+              description: A unique Transaction ID
+              schema:
+                type: string              
+            Content-Type: 
+              description: Response Content Type
+              schema:
+                type: string
+                default: application/json  
+          content:
+            application/json:    
+              schema:
+                $ref: "#/components/schemas/PingResponse"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Save the Status object
+      operationId: postStatus
+      tags:
+        - status
+      requestBody:
+        content:
+          application/json:    
+            schema:
+              $ref: "#/components/schemas/Status"
+      responses:
+        '201':
+          description: Return the Status object
+          headers:
+            x-transaction-id:
+              description: A unique Transaction ID
+              schema:
+                type: string              
+            Content-Type: 
+              description: Response Content Type
+              schema:
+                type: string
+                default: application/json   
+          content:
+            application/json:    
+              schema:
+                $ref: "#/components/schemas/PingResponse"                           
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /pets:
+    get:
+      tags:
+      - pet
+      summary: Finds Pets by status
+      description: Multiple status values can be provided with comma separated strings
+      operationId: getPets
+      parameters:
+      - name: status
+        in: query
+        description: Status values that need to be considered for filter
+        required: false
+        explode: true
+        schema:
+          type: string
+          default: available
+          enum:
+            - available
+            - pending
+            - sold
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Pet'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Pet'
+        "400":
+          description: Invalid status value
+    post:
+      tags:
+      - pet
+      summary: Add a new pet to the store
+      description: Add a new pet to the store
+      operationId: addPets
+      requestBody:
+        description: Create a new pet in the store
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Pet'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/Pet'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Pet'
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Pet'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+        "405":
+          description: Invalid input
+
+  /pet/{petId}:
+    get:
+      tags:
+      - pet
+      summary: Find pet by ID
+      description: Returns a single pet
+      operationId: getPetById
+      parameters:
+      - name: petId
+        in: path
+        description: ID of pet to return
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Pet'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Pet not found
+    post:
+      tags:
+      - pet
+      summary: Updates a pet in the store with form data
+      description: ""
+      operationId: updatePetWithForm
+      parameters:
+      - name: petId
+        in: path
+        description: ID of pet that needs to be updated
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: name
+        in: query
+        description: Name of pet that needs to be updated
+        schema:
+          type: string
+      - name: status
+        in: query
+        description: Status of pet that needs to be updated
+        schema:
+          type: string
+      responses:
+        "405":
+          description: Invalid input          
+components:
+  schemas:
+    Status:
+      description: Status object
+      properties:
+        status:       
+          type: number
+          example: 200
+        message:
+          type: string
+          example: "Alive"
+    PingStatus:
+      description: Represents a dependency status result for ping responses
+      properties:
+        name: 
+          description: Logical name of the connection (e.g., system name)
+          type: string
+          example: "Ext_Sys1"
+        status:
+          description: Status of the connection, identifying whether the connection was validated (UP), the connection timed out (DOWN), or the connection attempt failed for some other reason (ERROR)
+          enum: [ "UP", "DOWN", "ERROR" ]    
+          example: "UP"
+    ResponseStatus:
+      description: Represents the overall status of the operation
+      enum:
+            - SUCCESS
+            - FAILED
+            - INPROGRESS
+            - COMPLETED
+            - ERROR
+            - PENDING
+            - ACKNOWLEDGE
+            - ACCEPTED
+            - WARNING
+      example: SUCCESS     
+    PingResponse:
+      description: Represents a standard response structure for API health checks
+      properties:
+        status:
+          description: Describes the overall status of the API, including system connectivity states. When dependency checks are included, the status identifies whether the API is fully functional (OK), one or more dependencies are down (DEGRADED), or all dependencies are down (OFFLINE).
+          type: string
+          enum: [ "OK", "DEGRADED", "OFFLINE" ]
+        apiName:
+          description: Asset name of the API returning the response
+          type: string
+          maxLength: 128
+          example: "apipeople-api-test"
+        apiVersion: 
+          description: Complete version of the API returning the response; format is major.minor.patch
+          type: string
+          minLength: 5
+          maxLength: 11
+          example: "apiv1.2.3"
+        timestamp:
+          type: string
+          example: "2023-05-16T10:00:00.000-05:00"
+        dependencies?:
+          description: Optional list of connections this API is dependent upon
+          type: array
+          items:
+            $ref: "#/components/schemas/PingStatus"                  
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: Dogs
+      xml:
+        name: category          
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+      xml:
+        name: tag        
+    Pet:
+      required:
+      - name
+      - photoUrls
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        name:
+          type: string
+          example: doggie
+        category:
+          $ref: '#/components/schemas/Category'
+        photoUrls:
+          type: array
+          xml:
+            wrapped: true
+          items:
+            type: string
+            xml:
+              name: photoUrl
+        tags:
+          type: array
+          xml:
+            wrapped: true
+          items:
+            $ref: '#/components/schemas/Tag'
+        status:
+          type: string
+          description: pet status in the store
+          enum:
+            - available
+            - pending
+            - sold
+          example: available
+      xml:
+        name: pet          
+    Pets:
+      type: array
+      maxItems: 100
+      items:
+        $ref: "#/components/schemas/Pet"
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string

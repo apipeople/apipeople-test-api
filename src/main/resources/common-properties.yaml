@@ -1,0 +1,21 @@
+api:
+  name: "apipeople-api-template"
+  http:
+    port: "8081"
+    private.port: "8091"
+  https:
+    port: "8082"
+  base:
+    path: "/api/v1/*"
+  semantic:
+    version: "v1"
+    
+json:
+  logger:
+    disabled: # Indicate which fields should not be logged
+      fields: "content" #Options: priority, tracePoint, message, content, correlationId
+    masked: # Indicate which fields should be masked
+      fields: "client_secret,email,phone,firstName,lastName,accountNumber,ssn,phone"
+    application:
+      name: ${api.name}
+      version: ${api.semantic.version}

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:json-logger="http://www.mulesoft.org/schema/mule/json-logger"
+	xmlns:module-error-handler-plugin="http://www.mulesoft.org/schema/mule/module-error-handler-plugin"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/module-error-handler-plugin http://www.mulesoft.org/schema/mule/module-error-handler-plugin/current/mule-module-error-handler-plugin.xsd
+http://www.mulesoft.org/schema/mule/json-logger http://www.mulesoft.org/schema/mule/json-logger/current/mule-json-logger.xsd">
+	<error-handler name="common-api-kit-errors" doc:id="e509ca73-9c17-41a4-9a82-eed9c827b374"
+		doc:description="This is the default error handler for the API, all the error generated will be routed here further action">
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate"
+			doc:id="424f32c3-024b-4a23-8d85-8bc2cb036a79" type="ANY">
+			<module-error-handler-plugin:process-error doc:name="Process Error"
+				doc:id="05c4f9b6-2534-463a-bc5b-cd8346d66bbf">
+				<module-error-handler-plugin:custom-errors>
+						<![CDATA[#[${file::dataweave/customErrors.dwl}]]]>
+				</module-error-handler-plugin:custom-errors>
+			</module-error-handler-plugin:process-error>
+
+			<set-variable value="#[attributes.httpStatus default 500]" doc:name="FV: SET httpStatus"
+				doc:id="3911b097-1bf5-4c14-a18e-25d89179ffdc" variableName="httpStatus" />
+			<json-logger:logger doc:name="ERROR: an error was found" doc:id="eb2f96c0-8187-45fa-83e4-fb22e7958306"
+				config-ref="JSON_Logger_Config" message='#[output application/json --- { code: attributes.httpStatus, message: attributes.errorLog }]'
+				tracePoint="EXCEPTION" priority="ERROR" correlationId="#[vars.transactionId]" category="${api.name}.common-api-kit-errors" />
+		</on-error-propagate>
+
+	</error-handler>
+</mule>

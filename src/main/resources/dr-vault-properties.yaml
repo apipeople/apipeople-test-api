@@ -1,0 +1,7 @@
+stores:
+  keystore:
+    keypassword: "![3IioMcUhECQYtwOF8XTanA==]"
+    password: "![3IioMcUhECQYtwOF8XTanA==]"
+  truststore:
+    password: "![3IioMcUhECQYtwOF8XTanA==]"
+

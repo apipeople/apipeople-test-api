@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:error-handler-plugin="http://www.mulesoft.org/schema/mule/error-handler-plugin"
+	xmlns:json-logger="http://www.mulesoft.org/schema/mule/json-logger" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/json-logger http://www.mulesoft.org/schema/mule/json-logger/current/mule-json-logger.xsd
+http://www.mulesoft.org/schema/mule/error-handler-plugin http://www.mulesoft.org/schema/mule/error-handler-plugin/current/mule-error-handler-plugin.xsd">
+	<sub-flow name="sf-post-status">
+		<json-logger:logger doc:name="INFO: Start of POST Status" doc:id="281b183b-f5bd-4829-909f-333cdcefcb78"
+			config-ref="JSON_Logger_Config" message="Start of POST Status" correlationId="#[vars.transactionId]"
+			category="${api.name}.sf-post-status">
+			<json-logger:content>
+        <![CDATA[#[import modules::JSONLoggerModule output application/json ---
+{
+	transactionId: attributes.headers."x-transaction-id" default vars.transactionId,
+	sourceSystem: attributes.headers."x-source-system" default vars.sourceSystem,
+	payload: JSONLoggerModule::stringifyNonJSON(payload)
+}]]]>
+      </json-logger:content>
+		</json-logger:logger>
+		<ee:transform doc:name="DW: SET ping response" doc:id="d8eceacd-363b-4f2d-a9d7-3eee25186cd9">
+			<ee:message>
+				<ee:set-payload>
+          <![CDATA[%dw 2.0
+output application/json
+---
+{
+  module: p('api.name'),
+  code: 200,
+  status: "ACTIVE",
+  message: "Successfully completed the request",
+  details: "Invoked operation POST:/status",
+  requestTimestamp: vars.startTimestamp default now(),
+  responseTimestamp: now()
+}]]>
+				</ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<json-logger:logger doc:name="INFO: End of POST Status" doc:id="b4315401-5517-4bc6-95cf-0b782b6e04ba"
+			config-ref="JSON_Logger_Config" message="End of POST Status" tracePoint="END" correlationId="#[vars.transactionId]"
+			category="${api.name}.sf-post-status">
+			<json-logger:content>
+        <![CDATA[#[import modules::JSONLoggerModule output application/json ---
+{
+	transactionId: attributes.headers."x-transaction-id" default vars.transactionId,
+	sourceSystem: attributes.headers."x-source-system" default vars.sourceSystem,
+	payload: JSONLoggerModule::stringifyNonJSON(payload)
+}]]]>
+      </json-logger:content>
+		</json-logger:logger>
+	</sub-flow>
+</mule>

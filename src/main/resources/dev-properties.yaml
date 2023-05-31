@@ -1,0 +1,14 @@
+api:
+  id: "1"
+  
+sys:
+  api:
+    host: "dev.test.com"
+    port: "443"
+    path: "/test/v1"
+    response.timeout: "2000" 
+    reconnect.frequency: "1000"
+    reconnect.attempts: "2"
+    until.successful:
+      max.retries: "2"
+      retry.gap: "2000"

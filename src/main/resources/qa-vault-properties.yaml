@@ -1,0 +1,6 @@
+stores:
+  keystore:
+    keypassword: "![mfqOAjUpDVGY5XozICmfnw==]"
+    password: "![mfqOAjUpDVGY5XozICmfnw==]"
+  truststore:
+    password: "![mfqOAjUpDVGY5XozICmfnw==]"

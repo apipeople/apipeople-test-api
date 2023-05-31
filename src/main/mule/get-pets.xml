@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:error-handler-plugin="http://www.mulesoft.org/schema/mule/error-handler-plugin"
+	xmlns:json-logger="http://www.mulesoft.org/schema/mule/json-logger" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/json-logger http://www.mulesoft.org/schema/mule/json-logger/current/mule-json-logger.xsd
+http://www.mulesoft.org/schema/mule/error-handler-plugin http://www.mulesoft.org/schema/mule/error-handler-plugin/current/mule-error-handler-plugin.xsd">
+	<sub-flow name="sf-get-pets-by-status">
+		<json-logger:logger doc:name="INFO: Start of GET Pets By Status" doc:id="60ed1355-9f6d-4b0c-8620-6bd4df01a096"
+			config-ref="JSON_Logger_Config" message="Start of GET Pets By Status" correlationId="#[vars.transactionId]" category="${api.name}.sf-get-pets-by-status">
+			<json-logger:content>
+        <![CDATA[#[output application/json skipNullOn="everywhere" ---
+{
+	transactionId: attributes.headers."x-transaction-id" default vars.transactionId,
+	sourceSystem: attributes.headers."x-source-system" default vars.sourceSystem
+}]]]>
+      </json-logger:content>
+		</json-logger:logger>
+		<http:request method="GET" doc:name="GET /pets" doc:id="e644e7d9-d6f7-4399-9418-3358b100632e" config-ref="Petstore_HTTP_Request_configuration" path="/pet/findByStatus">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"accept" : "application/json"
+}]]]></http:headers>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"status" : attributes.queryParams.'status'
+}]]]></http:query-params>
+		</http:request>
+		<ee:transform doc:name="DW: response" doc:id="d6a28942-b82f-43d2-a38e-4a9eafc46c10">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]>
+				</ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<json-logger:logger doc:name="INFO: End of GET Pets By Status" doc:id="5fc549a1-4a58-4a59-8b09-1a3428e4fc1c"
+			config-ref="JSON_Logger_Config" message="End of GET Pets By Status" tracePoint="END" correlationId="#[vars.transactionId]"
+			category="${api.name}.sf-get-pets-by-status">
+			<json-logger:content>
+        <![CDATA[#[import modules::JSONLoggerModule output application/json skipNullOn="everywhere" ---
+{
+	transactionId: attributes.headers."x-transaction-id" default vars.transactionId,
+	sourceSystem: attributes.headers."x-source-system" default vars.sourceSystem,
+	payload: JSONLoggerModule::stringifyNonJSON(payload)
+}]]]>
+      </json-logger:content>
+		</json-logger:logger>
+
+	</sub-flow>
+
+
+	<sub-flow name="sf-get-pets-by-id">
+		<json-logger:logger doc:name="INFO: Start of GET Pets By Status" doc:id="cf0a466a-9017-4cc1-b266-3bf2614e0d55"
+			config-ref="JSON_Logger_Config" message="Start of GET Pets By Status" correlationId="#[vars.transactionId]" category="${api.name}.sf-get-pets-by-id">
+			<json-logger:content>
+        <![CDATA[#[output application/json skipNullOn="everywhere" ---
+{
+	transactionId: attributes.headers."x-transaction-id" default vars.transactionId,
+	sourceSystem: attributes.headers."x-source-system" default vars.sourceSystem
+}]]]>
+      </json-logger:content>
+		</json-logger:logger>
+		<http:request method="GET" doc:name="GET pet/{id}" doc:id="5a34bd35-2078-48c5-8fa5-d67febcea6b1" config-ref="Petstore_HTTP_Request_configuration" path="/pet/{petId}">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"accept" : "application/json"
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"petId" : vars.petId
+}]]]></http:uri-params>
+		</http:request>
+		<ee:transform doc:name="DW: response" doc:id="f12e6232-4105-4b5f-b969-43d56ac95c89">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]>
+				</ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<json-logger:logger doc:name="INFO: End of GET Pets By Status" doc:id="8cf55c81-bc58-44af-a79d-4cbf0fdfe385"
+			config-ref="JSON_Logger_Config" message="End of GET Pets By Status" tracePoint="END" correlationId="#[vars.transactionId]"
+			category="${api.name}.sf-get-pets-by-id">
+			<json-logger:content>
+        <![CDATA[#[import modules::JSONLoggerModule output application/json skipNullOn="everywhere" ---
+{
+	transactionId: attributes.headers."x-transaction-id" default vars.transactionId,
+	sourceSystem: attributes.headers."x-source-system" default vars.sourceSystem,
+	payload: JSONLoggerModule::stringifyNonJSON(payload)
+}]]]>
+      </json-logger:content>
+		</json-logger:logger>
+
+	</sub-flow>
+		
+</mule>

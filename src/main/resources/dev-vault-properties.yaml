@@ -1,0 +1,11 @@
+stores:
+  keystore:
+    keypassword: "![3IioMcUhECQYtwOF8XTanA==]"
+    password: "![3IioMcUhECQYtwOF8XTanA==]"
+  truststore:
+    password: "![3IioMcUhECQYtwOF8XTanA==]"
+    
+sys:
+  key: "![3IioMcUhECQYtwOF8XTanA==]"
+  username: "![3IioMcUhECQYtwOF8XTanA==]"
+  password: "![3IioMcUhECQYtwOF8XTanA==]"

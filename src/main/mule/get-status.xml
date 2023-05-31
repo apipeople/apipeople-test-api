@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:error-handler-plugin="http://www.mulesoft.org/schema/mule/error-handler-plugin"
+	xmlns:json-logger="http://www.mulesoft.org/schema/mule/json-logger" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/json-logger http://www.mulesoft.org/schema/mule/json-logger/current/mule-json-logger.xsd
+http://www.mulesoft.org/schema/mule/error-handler-plugin http://www.mulesoft.org/schema/mule/error-handler-plugin/current/mule-error-handler-plugin.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<sub-flow name="sf-get-status">
+		<json-logger:logger doc:name="INFO: Start of GET Status" doc:id="60ed1355-9f6d-4b0c-8620-6bd4df01a096"
+			config-ref="JSON_Logger_Config" message="Start of GET Status" correlationId="#[vars.transactionId]" category="${api.name}.sf-get-status">
+			<json-logger:content>
+        <![CDATA[#[output application/json skipNullOn="everywhere" ---
+{
+	transactionId: attributes.headers."x-transaction-id" default vars.transactionId,
+	sourceSystem: attributes.headers."x-source-system" default vars.sourceSystem
+}]]]>
+      </json-logger:content>
+		</json-logger:logger>
+		<choice doc:name="Choice" doc:id="73a21173-488e-490e-b56b-ccb28c6493db">
+			<when expression="#[attributes.queryParams.'source' == 'local']">
+				<ee:transform doc:name="DW: SET ping response" doc:id="cbaf7e3e-3743-4c9e-8bae-8b99b7854fb0">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	module: p('api.name'),
+	code: 200,
+	status: "ACTIVE",
+	message: "Successfully completed the request",
+	details: "Invoked operation GET:/status",
+	requestTimestamp: now(),
+	responseTimestamp: now()
+}]]>
+						</ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<when expression="#[attributes.queryParams.'source' == 'file']">
+				<file:read doc:name="Read Status" doc:id="d5dc0c76-0dad-4dcb-b731-7449bcdb2ab6" config-ref="File_Config"
+					path="C:\Sri\test\status.csv" outputMimeType="application/csv" />
+				<ee:transform doc:name="DW: file response" doc:id="ff22d57b-ded4-4cfa-b4bf-6ba0acb80de5">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+(payload default [] map {
+	status: $.status,
+	apiName: $.api_name,
+	apiVersion: $.api_version,
+	timestamp: $.updated,
+	dependencies: [{
+		name: $.dep_name,
+		status: $.dep_status
+	}]
+})[0]]]>
+						</ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<db:select doc:name="Select Status" doc:id="92bd9d9c-0a3f-49cf-a8c1-0077fdfeece4" config-ref="Database_Config">
+					<db:sql><![CDATA[SELECT * FROM STATUS]]></db:sql>
+				</db:select>
+				<ee:transform doc:name="DW: db response" doc:id="1da2a6d2-182f-40c1-9139-37c47e64fc1e">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+(payload default [] map {
+	status: $.status,
+	apiName: $.api_name,
+	apiVersion: $.api_version,
+	timestamp: $.updated,
+	dependencies: [{
+		name: $.dep_name,
+		status: $.dep_status
+	}]
+})[0]]]>
+						</ee:set-payload>
+					</ee:message>
+				</ee:transform>
+
+			</otherwise>
+		</choice>
+		<json-logger:logger doc:name="INFO: End of GET Status" doc:id="5fc549a1-4a58-4a59-8b09-1a3428e4fc1c"
+			config-ref="JSON_Logger_Config" message="End of GET Status" tracePoint="END" correlationId="#[vars.transactionId]"
+			category="${api.name}.sf-get-status">
+			<json-logger:content>
+        <![CDATA[#[import modules::JSONLoggerModule output application/json skipNullOn="everywhere" ---
+{
+	transactionId: attributes.headers."x-transaction-id" default vars.transactionId,
+	sourceSystem: attributes.headers."x-source-system" default vars.sourceSystem,
+	payload: JSONLoggerModule::stringifyNonJSON(payload)
+}]]]>
+      </json-logger:content>
+		</json-logger:logger>
+
+	</sub-flow>
+</mule>
